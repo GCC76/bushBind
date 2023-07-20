@@ -9,5 +9,8 @@ bushEncript(string,password) : it returns a JSON file with the encrypted string 
 bushDecript(string,password,token) : it returns a JSON file with the decripted string in base64 format.
 
 
+Bush Bind does not guarantee the security of data recovery protection. It is recommended to only extract the encryption result and its token. Don't keep the entire JSON document!
+
+
 
 

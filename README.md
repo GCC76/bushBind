@@ -11,6 +11,8 @@ bushDecript(string,password,token) : it returns a JSON file with the decripted s
 
 Bush Bind cannot guarantee the security of data recovery protection from strong decription's tools. It is recommended to only extract the encryption result and its token. Don't keep the entire JSON document!
 
+Example of use in the index file
+
 
 
 

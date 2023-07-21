@@ -1,6 +1,6 @@
 <?php
 
-//Exemple of use
+//Example of use
 
 include_once("bushBind.php");
 

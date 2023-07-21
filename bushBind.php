@@ -9,8 +9,8 @@
 	private $resp = array(
 		"header" => array(
 			"name"=> "Bush Bind by GCC",
-			"description" => "Not for commercial use. Encryption is the result of character obfuscation using the given password. A security token is generated to keep and provide upon decryption. Bush Bind does not guarantee the security of data recovery protection. It is recommended to only extract the encryption result and its token. Don't keep the entire JSON document!",
-			"version" => "1.0.0",
+			"description" => "Not for commercial use. Encryption is the result of character obfuscation using the given password. A security token is generated to keep and provide upon decryption. Bush Bind cannot guarantee the security of data recovery protection. It is recommended to only extract the encryption result and its token. Don't keep the entire JSON document!",
+			"version" => "1.1.0",
 		),
 		"response" => array(
 			"value" => "",
@@ -123,38 +123,42 @@
 			$i=0;
 			$ascii = "";
 			$coded = "";
+			$scheme = "";
 			
 			//Convert the array value into ascii code
 			foreach($chars as $char){
 				$ascii .= ord($char).".";
 				$i++;
 			}
-			
+
 			$asciiArray = explode(".",$ascii);
 			foreach($asciiArray as $value){
 			
 				$values = str_split($value);
 				$length = strlen($value);
 				$i=1;
+				
 				foreach($values as $num){
 					
 					//Replace the ascii value with the key of the password generated array
-					$coded .= (isset($key[$num]) && !is_numeric($key[$num])) ? $key[$num] : $num;
+					$coded .= isset($key[$num]) ? $key[$num] : $num;
+					
 					if($i == $length){
-						$coded .= ".";
+						
+						//Create a scheme to reverse the procedure
+						$scheme .= $length;
 					}
 					$i++;
 				}
 			}
 			
-			//Include the token to the new generated string and convert it to base64
-			$coded = base64_encode($token.$coded);
+			//Include the token and the scheme to the new generated string and convert it to base64
+			$coded = base64_encode($token.$coded.".".$scheme);
 			
 			$this->resp['response']['value'] = true;
 			$this->resp['response']['security_token'] = $token;
 			$this->resp['response']['data'] = $coded;
 			return json_encode($this->resp);
-			
 			
 		}
 		catch(Exception $e){
@@ -189,14 +193,26 @@
 			}
 			
 			$text 	= substr($text,$keyLength);
+			$schemeNumber = explode(".",$text);
+			$scheme = end($schemeNumber);
+			$text 	= reset($schemeNumber);
+			$schemeSplit = str_split($scheme);
+			
 			$key	= md5(strrev($key)).$this->token;
 			$key 	= str_split($key);
 			$key 	= array_values(array_unique($key));
 			
-			$encoded 	= "";
-			$string 	= "";
-			$result	 	= "";
+			$encoded = "";
+			$string	 = "";
+			$result	 = "";
+			$sum     = 0;
+			$i		 = 0;
 			
+			foreach($schemeSplit as $num){
+				$sum += $num + $i;
+				$text = substr_replace($text, ".", $sum, 0);
+				$i=1;
+			}
 			$asciiArray = explode(".",$text);
 			
 			foreach($asciiArray as $value){
@@ -206,7 +222,7 @@
 
 				$i=1;
 				foreach($string as $char){
-					$encoded .= (in_array($char,$key) && !is_numeric($char)) ? array_search($char,$key) : $char;
+					$encoded .= in_array($char,$key) ? array_search($char,$key) : $char;
 					
 					if($i == $length){
 						$encoded .= ".";
@@ -219,7 +235,6 @@
 			foreach($encoded as $char){
 				$result .= is_numeric($char) ? chr($char) : null;
 			}
-			
 			
 			$this->resp['response']['value'] = true;
 			$this->resp['response']['security_token'] = $securityToken;

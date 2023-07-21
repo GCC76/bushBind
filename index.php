@@ -4,7 +4,7 @@
 
 include_once("bushBind.php");
 
-$testo = "
+$testo = " 
 Con il termine lorem ipsum si indica un testo segnaposto utilizzato da grafici, progettisti, programmatori e tipografi a modo riempitivo per bozzetti e prove grafiche.[1] È un testo privo di senso, composto da parole (o parti di parole) in lingua latina, riprese pseudocasualmente dal De finibus bonorum et malorum scritto da Cicerone del 45 a.C, a volte alterate con l'inserzione di passaggi ironici. La caratteristica principale è data dal fatto che offre una distribuzione delle lettere uniforme, apparendo come un normale blocco di testo leggibile.
 
 Il testo fu utilizzato per la prima volta nel 1500 da un anonimo tipografo per mostrare i propri caratteri; da allora è diventato lo standard dell'industria tipografica. È sopravvissuto non solo a più di cinque secoli, ma anche al passaggio alla videoimpaginazione, pervenendoci sostanzialmente inalterato. Fu reso popolare, negli anni '60, con la diffusione dei fogli di caratteri trasferibili, detti anche trasferelli, e successivamente dai programmi di grafica. La sua funzione lo avvicina al testo ETAOIN SHRDLU un tempo usato per provare le Linotype.[2]
@@ -41,6 +41,7 @@ if($response['response']['value'] == true){
 	die($response['response']['data']);
 
 }
+echo "<h2>Encrypted text</h2>".$data;
 
 //Start decryption
 $encoded = $code->bushDecrypt($data,$password,$token);
@@ -53,6 +54,7 @@ if($response['response']['value'] == true){
 
 }
 
-echo $data;
+
+echo "<h2>Decrypted text</h2>".$data;
 
 ?>

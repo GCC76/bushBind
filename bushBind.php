@@ -1,6 +1,5 @@
 <?php
- class bushBind{
-	 
+class bushBind{
 	
 	private $cycleCount = 4;
 	private $token = '';
@@ -110,6 +109,7 @@
 			//Every single change in password will generate a complete new string
 			$key	= md5(strrev($key)).$token; 	
 			
+			
 			//Split the new key in array and remove duplicate
 			$key 	= str_split($key);
 			$key 	= array_values(array_unique($key));
@@ -127,6 +127,7 @@
 				$ascii .= ord($char).".";
 				$i++;
 			}
+			
 
 			$asciiArray = explode(".",$ascii);
 			foreach($asciiArray as $value){
@@ -143,7 +144,7 @@
 					if($i == $length){
 						
 						//Create a scheme
-						$scheme .= $length;
+						$scheme .= isset($key[$length]) ? $key[$length] : $length;
 					}
 					$i++;
 				}
@@ -206,10 +207,13 @@
 			$i		 = 0;
 			
 			foreach($schemeSplit as $num){
-				$sum += $num + $i;
+				
+				$encodedNum = in_array($num,$key) ? array_search($num,$key) : $num;
+				$sum += $encodedNum + $i;
 				$text = substr_replace($text, ".", $sum, 0);
 				$i=1;
 			}
+			
 			$asciiArray = explode(".",$text);
 			
 			foreach($asciiArray as $value){
@@ -238,7 +242,6 @@
 			$this->resp['response']['data'] = base64_encode($result);
 			return json_encode($this->resp);
 			
-			
 		}
 		catch(Exception $e){
 			$this->resp['response']['value'] = false;
@@ -246,10 +249,6 @@
 			$this->resp['response']['data'] = $e->getMessage();
 			return json_encode($this->resp);
 		}
-	
 	}
-	
-	
-	
- }
+}
 ?>

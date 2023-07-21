@@ -27,8 +27,8 @@ $password="StrongPassword_required12";
 
 $code = new bushBind();
 
-//Start encription
-$coded = $code->bushEncript($testo,$password);
+//Start encryption
+$coded = $code->bushEncrypt($testo,$password);
 $response = json_decode($coded,true);
 
 if($response['response']['value'] == true){
@@ -42,8 +42,8 @@ if($response['response']['value'] == true){
 
 }
 
-//Start decription
-$encoded = $code->bushDecript($data,$password,$token);
+//Start decryption
+$encoded = $code->bushDecrypt($data,$password,$token);
 $response = json_decode($encoded,true);
 if($response['response']['value'] == true){
 	$data = base64_decode($response['response']['data']);

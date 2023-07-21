@@ -92,7 +92,7 @@
 	
 	
 	//Encripting function
-	public function bushEncript($text=null,$key=null){
+	public function bushEncrypt($text=null,$key=null){
 		
 		try{
 			
@@ -171,7 +171,7 @@
 	
 	
 	//Decripting string
-	public function bushDecript($text=null,$key=null,$securityToken=null){
+	public function bushDecrypt($text=null,$key=null,$securityToken=null){
 		
 		
 		try{

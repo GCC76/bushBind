@@ -1,7 +1,7 @@
 <?php
 
 // 	*****************************************
-// 	Strong string obfuscation with password encryption and decription By Gian Carlo Ciaccolini
+// 	Strong string obfuscation with password encryption and decryption By Gian Carlo Ciaccolini
 //	https://github.com/GCC76
 //	Not for commercial use
 // 	*****************************************

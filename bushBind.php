@@ -27,11 +27,8 @@
 
 		for($a=1; $a <= $this->cycleCount; $a++){
 			for ($x=1; $x<=$length; $x++){
-				if ($x % 2){
-					$token = $token . chr(rand(65,90));
-				} else {
-					$token = $token . chr(rand(97,122));
-				}
+				$rand = chr(rand(49,57));
+				$token .= ( $rand < 8 ) ? $rand : chr(rand(97,99));
 			};
 		}
 		
@@ -145,7 +142,7 @@
 					
 					if($i == $length){
 						
-						//Create a scheme to reverse the procedure
+						//Create a scheme
 						$scheme .= $length;
 					}
 					$i++;

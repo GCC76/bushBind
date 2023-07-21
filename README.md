@@ -4,7 +4,7 @@ The encryption uses an obfuscation system based on the replacement of the single
 
 Methods
 
-bushEncyipt(string,password) : it returns a JSON file with the encrypted string in base64 format and a token to use for decryption
+bushEncrypt(string,password) : it returns a JSON file with the encrypted string in base64 format and a token to use for decryption
 
 bushDecrypt(string,password,token) : it returns a JSON file with the decripted string in base64 format.
 

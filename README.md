@@ -14,5 +14,3 @@ Bush Bind cannot guarantee the security of data recovery protection from strong 
 Example of use in the index file
 
 
-
-

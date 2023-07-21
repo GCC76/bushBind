@@ -4,9 +4,9 @@ The encryption uses an obfuscation system based on the replacement of the single
 
 Methods
 
-bushEncript(string,password) : it returns a JSON file with the encrypted string in base64 format and a token to use for decryption
+bushEncyipt(string,password) : it returns a JSON file with the encrypted string in base64 format and a token to use for decryption
 
-bushDecript(string,password,token) : it returns a JSON file with the decripted string in base64 format.
+bushDecrypt(string,password,token) : it returns a JSON file with the decripted string in base64 format.
 
 
 Bush Bind cannot guarantee the security of data recovery protection from strong decription's tools. It's recommended to only extract the encryption result and its token. Don't keep the entire JSON document!

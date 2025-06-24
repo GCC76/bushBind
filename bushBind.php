@@ -86,6 +86,7 @@ class bushBind
         return [$scheme, $coded];
     }
 
+    
     //De-offusca i dati utilizzando lo schema e il charset
     private function getDecoded(array $obfuscatedChunks, array $keyCharset): string{
         
@@ -98,7 +99,8 @@ class bushBind
             $chars = str_split($chunk);
             $asciiValue = "";
             foreach ($chars as $char) {
-                // Ricerca inversa molto più veloce
+                
+                // Ricerca inversa
                 $asciiValue .= $reversedKeyCharset[$char] ?? $char;
             }
             $result .= chr((int)$asciiValue);
@@ -107,9 +109,9 @@ class bushBind
         return $result;
     }
     
+    
     //Costruisce e ritorna la risposta JSON
-    private function _buildResponse(bool $success, string $data, ?string $token = null): string
-    {
+    private function _buildResponse(bool $success, string $data, ?string $token = null): string{
         $response = $this->respTemplate;
         $response['response']['value'] = $success;
         $response['response']['security_token'] = $token;
@@ -124,6 +126,7 @@ class bushBind
     
     //Funzione di offuscamento
     public function bushEncrypt(?string $text, ?string $key): string{
+        
         if (empty($text) || empty($key)) {
              return $this->_buildResponse(false, "Text and key are mandatory");
         }
@@ -144,7 +147,7 @@ class bushBind
             [$scheme, $coded] = $this->getScheme($asciiArray, $keyCharset);
             
             // Unisce le parti e codifica in base64
-            $finalData = base64_encode($token . '.' . $coded . '.' . $scheme);
+            $finalData = base64_encode($token . $coded . '.' . $scheme);
 
             return $this->_buildResponse(true, $finalData, $token);
 
@@ -152,6 +155,11 @@ class bushBind
             return $this->_buildResponse(false, $e->getMessage());
         }
     }
+    
+    
+    
+    
+    
 
     //Funzione di de-offuscamento
     public function bushDecrypt(?string $text, ?string $key, ?string $securityToken): string{
@@ -161,17 +169,23 @@ class bushBind
         }
 
         try {
+            
             $decodedText = base64_decode($text, true);
             if ($decodedText === false) {
                 throw new Exception("Invalid Base64 input.");
             }
 
-            // Estrae token, dati e schema usando un delimitatore
+            // Estrae token, dati e schema
+            $keyLength = strlen($key) * $this->cycleCount;
+			$this->token = substr($decodedText,0,$keyLength);
+            $decodedText = substr($decodedText,$keyLength);
             $parts = explode('.', $decodedText);
-            if (count($parts) !== 3) {
+            
+            if (count($parts) !== 2) {
                 throw new Exception("Malformed data structure.");
             }
-            [$this->token, $codedData, $scheme] = $parts;
+            
+            [$codedData, $scheme] = $parts;
 
             // Controllo del token
             if (!hash_equals($this->token, $securityToken)) {

@@ -160,7 +160,7 @@ class bushBind
             [$scheme, $coded] = $this->getScheme($asciiArray, $keyCharset);
             
             // Unisce le parti e codifica in base64
-            $finalData = base64_encode($token . '||' . $coded . '||' . $scheme);
+            $finalData = base64_encode($token . '.' . $coded . '.' . $scheme);
 
             return $this->_buildResponse(true, $finalData, $token);
 
@@ -184,8 +184,8 @@ class bushBind
                 throw new Exception("Invalid Base64 input.");
             }
 
-            // Estrae token, dati e schema usando un delimitatore chiaro
-            $parts = explode('||', $decodedText);
+            // Estrae token, dati e schema usando un delimitatore
+            $parts = explode('.', $decodedText);
             if (count($parts) !== 3) {
                 throw new Exception("Malformed data structure.");
             }

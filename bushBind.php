@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1); // Abilita il controllo rigoroso dei tipi per una maggiore robustezza
+declare(strict_types=1);
 
 // 	*****************************************
 // 	Strong string obfuscation with password encryption and decryption By Gian Carlo Ciaccolini
@@ -27,28 +27,20 @@ class bushBind
         ]
     ];
 
-    /**
-     * Crea un token di sicurezza basato sulla lunghezza della password.
-     */
-    private function tokenGen(int $length): string
-    {
+    //Crea un token di sicurezza basato sulla lunghezza della password.
+    private function tokenGen(int $length): string{
         $token = "";
-        $charPool = '1234567abc'; // Pool di caratteri predefinito per evitare chiamate rand() multiple
-        $poolLength = strlen($charPool) - 1;
-
-        $totalLength = $length * $this->cycleCount;
-        for ($i = 0; $i < $totalLength; $i++) {
-            $token .= $charPool[rand(0, $poolLength)];
-        }
-
+        for($a=1; $a <= $this->cycleCount; $a++){
+			for ($x=1; $x<=$length; $x++){
+				$rand = chr(rand(49,57));
+				$token .= ( $rand < 8 ) ? $rand : chr(rand(97,99));
+			};
+		}
         return $token;
     }
 
-    /**
-     * Controlla la robustezza della password.
-     */
-    private function keyCheck(string $key): bool|string
-    {
+    //Controlla la robustezza della password.
+    private function keyCheck(string $key): bool|string{
         if (strlen($key) < 8) {
             return "Password must contain at least 8 characters";
         }
@@ -64,21 +56,15 @@ class bushBind
         return true;
     }
     
-    /**
-     * Genera la mappa di caratteri (charset) usata per l'offuscamento.
-     */
-    private function generateKeyCharset(string $key, string $token): array
-    {
-        // Utilizzo di sha256 invece di md5 per una maggiore sicurezza (anche se ancora non ideale per derivare chiavi)
+    //Genera la mappa di caratteri (charset) usata per l'offuscamento.
+    private function generateKeyCharset(string $key, string $token): array{
+        
         $combinedKey = hash('sha256', strrev($key)) . $token;
         return array_values(array_unique(str_split($combinedKey)));
     }
 
-    /**
-     * Offusca i valori ASCII e genera lo schema per la decrittazione.
-     */
-     private function getScheme(array $asciiArray, array $keyCharset): array
-    {
+    //Offusca i valori ASCII e genera lo schema per la decrittazione
+    private function getScheme(array $asciiArray, array $keyCharset): array{
         $coded = "";
         $scheme = "";
 
@@ -100,13 +86,11 @@ class bushBind
         return [$scheme, $coded];
     }
 
-    /**
-     * De-offusca i dati utilizzando lo schema e il charset.
-     */
-    private function getDecoded(array $obfuscatedChunks, array $keyCharset): string
-    {
+    //De-offusca i dati utilizzando lo schema e il charset
+    private function getDecoded(array $obfuscatedChunks, array $keyCharset): string{
+        
         $result = "";
-        $reversedKeyCharset = array_flip($keyCharset); // Usa array_flip per ricerche O(1) invece di O(n)
+        $reversedKeyCharset = array_flip($keyCharset); 
 
         foreach ($obfuscatedChunks as $chunk) {
             if ($chunk === '') continue;
@@ -123,9 +107,7 @@ class bushBind
         return $result;
     }
     
-    /**
-     * Costruisce e ritorna la risposta JSON.
-     */
+    //Costruisce e ritorna la risposta JSON
     private function _buildResponse(bool $success, string $data, ?string $token = null): string
     {
         $response = $this->respTemplate;
@@ -135,11 +117,13 @@ class bushBind
         return json_encode($response, JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Funzione di offuscamento (ex "Encrypting").
-     */
-    public function bushEncrypt(?string $text, ?string $key): string
-    {
+    
+    
+    
+    
+    
+    //Funzione di offuscamento
+    public function bushEncrypt(?string $text, ?string $key): string{
         if (empty($text) || empty($key)) {
              return $this->_buildResponse(false, "Text and key are mandatory");
         }
@@ -169,11 +153,9 @@ class bushBind
         }
     }
 
-    /**
-     * Funzione di de-offuscamento (ex "Decrypting").
-     */
-    public function bushDecrypt(?string $text, ?string $key, ?string $securityToken): string
-    {
+    //Funzione di de-offuscamento
+    public function bushDecrypt(?string $text, ?string $key, ?string $securityToken): string{
+        
         if (empty($text) || empty($key) || empty($securityToken)) {
             return $this->_buildResponse(false, "Data to be converted, password and security token are mandatory", $securityToken);
         }
@@ -224,3 +206,5 @@ class bushBind
         }
     }
 }
+
+?>

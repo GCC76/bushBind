@@ -83,20 +83,17 @@ class bushBind
         $scheme = "";
 
         foreach ($asciiArray as $asciiValue) {
-            // Sebbene ord() non possa restituire una stringa vuota, manteniamo il controllo per robustezza.
+            
             if ($asciiValue === '') continue;
 
-            // --- ECCO LA CORREZIONE ---
-            // Converte l'intero (es: 72) in stringa ("72") prima di dividerlo in cifre.
             $digits = str_split((string)$asciiValue); 
             
             $length = count($digits);
 
             foreach ($digits as $digit) {
-                // PHP gestirà la chiave stringa '7' come chiave intera 7, quindi questo funziona.
+
                 $coded .= $keyCharset[$digit] ?? $digit;
             }
-            // Crea lo schema utilizzando la lunghezza del valore ASCII
             $scheme .= $keyCharset[$length] ?? $length;
         }
 

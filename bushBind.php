@@ -1,261 +1,229 @@
 <?php
 
+declare(strict_types=1); // Abilita il controllo rigoroso dei tipi per una maggiore robustezza
+
 // 	*****************************************
 // 	Strong string obfuscation with password encryption and decryption By Gian Carlo Ciaccolini
 //	https://github.com/GCC76
 //	Not for commercial use
 // 	*****************************************
 
-class bushBind{
-	
-	private $cycleCount = 4;
-	private $token = '';
-	
-	//Array for response
-	private $resp = array(
-		"header" => array(
-			"name"=> "Bush Bind by GCC",
-			"description" => "Not for commercial use. Encryption is the result of character obfuscation using the given password. A security token is generated to keep and provide upon decryption. Bush Bind cannot guarantee the security of data recovery protection. It is recommended to only extract the encryption result and its token. Don't keep the entire JSON document!",
-			"version" => "1.1.0",
-		),
-		"response" => array(
-			"value" => "",
-			"security_token" => "",
-			"data" => "",
-		)
-	);
-	
-	
-	//Create a security token base on the length of the given password
-	private function tokenGen($length=null){
-	
-		$token = "";
+class bushBind
+{
+    private int $cycleCount = 4;
+    private string $token = '';
 
-		for($a=1; $a <= $this->cycleCount; $a++){
-			for ($x=1; $x<=$length; $x++){
-				$rand = chr(rand(49,57));
-				$token .= ( $rand < 8 ) ? $rand : chr(rand(97,99));
-			};
-		}
-		
-		return($token);
-	}
-	
-	
-	//Check the password security
-	private function keyCheck($key=null){
-		
-		try{
-			
-			if(!$key or $key == ''){
-				throw new Exception("Password must contain at least 8 characters, one of which uppercase, a number and special characters");
-			}
-			
-			if(strlen($key) < 8){
-				throw new Exception("Password must contain at least 8 characters");
-			}
-			
-			if(!preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $key)){
-				throw new Exception("Password must contain at least a special character");
-			}
-			
-			if(!preg_match('~[0-9]+~', $key)){
-				throw new Exception("Password must contain at least a number");
-			}
-			
-			if(!preg_match('/[A-Z]/', $key)){
-				throw new Exception("Password must contain at least an uppercase character");
-			}
-			
-			return true;
-			
-		}
-		catch(Exception $e){
-			return $e->getMessage();
-		}
-		
-	}
-	
-	
-	//Try to match the given token with the one saved on string
-	private function checkToken($token=null){
-		
-		try{
-			
-			if(!$token){
-				throw new Exception("Security token is required to proceed");
-			}
-			if($token !== $this->token){
-				throw new Exception("Security token or password mismatch");
-			}
-			return true;
-		}
-		catch(Exception $e){
-			return $e->getMessage();
-		}
-	}
-	
-	
-	
-	//Encripting function
-	public function bushEncrypt($text=null,$key=null){
-		
-		try{
-			
-			//Verify given password for consistency
-			$keyCheck = $this->keyCheck($key);
-			if($keyCheck !== true){
-				throw new Exception($keyCheck);
-			}
-			$keyLength = strlen($key);
-			
-			//Generate a new token
-			$token = $this->tokenGen($keyLength);
-			
-			//Join the reversed and converted given password with generated token.
-			//Every single change in password will generate a complete new string
-			$key	= md5(strrev($key)).$token; 	
-			
-			
-			//Split the new key in array and remove duplicate
-			$key 	= str_split($key);
-			$key 	= array_values(array_unique($key));
-			
-			//Split the given text to an array
-			$chars 	= str_split($text);		
+    // Struttura della risposta unificata
+    private array $respTemplate = [
+        "header" => [
+            "name" => "Bush Bind by GCC",
+            "description" => "Not for commercial use. Encryption is the result of character obfuscation using the given password. A security token is generated to keep and provide upon decryption. Bush Bind cannot guarantee the security of data recovery protection. It is recommended to only extract the encryption result and its token. Don't keep the entire JSON document!",
+            "version" => "1.2.0 (Optimized)", // Versione aggiornata
+        ],
+        "response" => [
+            "value" => false,
+            "security_token" => null,
+            "data" => "",
+        ]
+    ];
 
-			$i=0;
-			$ascii = "";
-			$coded = "";
-			$scheme = "";
-			
-			//Convert the array value into ascii code
-			foreach($chars as $char){
-				$ascii .= ord($char).".";
-				$i++;
-			}
-			
+    /**
+     * Crea un token di sicurezza basato sulla lunghezza della password.
+     */
+    private function tokenGen(int $length): string
+    {
+        $token = "";
+        $charPool = '1234567abc'; // Pool di caratteri predefinito per evitare chiamate rand() multiple
+        $poolLength = strlen($charPool) - 1;
 
-			$asciiArray = explode(".",$ascii);
-			foreach($asciiArray as $value){
-			
-				$values = str_split($value);
-				$length = strlen($value);
-				$i=1;
-				
-				foreach($values as $num){
-					
-					//Replace the ascii value with the key of the password generated array
-					$coded .= isset($key[$num]) ? $key[$num] : $num;
-					
-					if($i == $length){
-						
-						//Create a scheme
-						$scheme .= isset($key[$length]) ? $key[$length] : $length;
-					}
-					$i++;
-				}
-			}
-			
-			//Include the token and the scheme to the new generated string and convert it to base64
-			$coded = base64_encode($token.$coded.".".$scheme);
-			
-			$this->resp['response']['value'] = true;
-			$this->resp['response']['security_token'] = $token;
-			$this->resp['response']['data'] = $coded;
-			return json_encode($this->resp);
-			
-		}
-		catch(Exception $e){
-			
-			$this->resp['reponse']['value'] = false;
-			$this->resp['response']['data'] = $e->getMessage();
-			return json_encode($this->resp);
-			
-		}
-	
-	}
-	
-	
-	
-	//Decripting string
-	public function bushDecrypt($text=null,$key=null,$securityToken=null){
-		
-		
-		try{
-			
-			if(!$text or !$key or !$securityToken){
-				throw new Exception("Data to be converted, password and security token are mandatory");
-			}
-			
-			$text = base64_decode($text);
-			$keyLength = strlen($key) * $this->cycleCount;
-			$this->token = substr($text,0,$keyLength);
-			$response = $this->checkToken($securityToken);
+        $totalLength = $length * $this->cycleCount;
+        for ($i = 0; $i < $totalLength; $i++) {
+            $token .= $charPool[rand(0, $poolLength)];
+        }
 
-			if($response !== true){
-				throw new Exception($response);
-			}
-			
-			$text 	= substr($text,$keyLength);
-			$schemeNumber = explode(".",$text);
-			$scheme = end($schemeNumber);
-			$text 	= reset($schemeNumber);
-			$schemeSplit = str_split($scheme);
-			
-			$key	= md5(strrev($key)).$this->token;
-			$key 	= str_split($key);
-			$key 	= array_values(array_unique($key));
-			
-			$encoded = "";
-			$string	 = "";
-			$result	 = "";
-			$sum     = 0;
-			$i		 = 0;
-			
-			foreach($schemeSplit as $num){
-				
-				$encodedNum = in_array($num,$key) ? array_search($num,$key) : $num;
-				$sum += $encodedNum + $i;
-				$text = substr_replace($text, ".", $sum, 0);
-				$i=1;
-			}
-			
-			$asciiArray = explode(".",$text);
-			
-			foreach($asciiArray as $value){
-				
-				$length = strlen($value);
-				$string = str_split($value);
+        return $token;
+    }
 
-				$i=1;
-				foreach($string as $char){
-					$encoded .= in_array($char,$key) ? array_search($char,$key) : $char;
-					
-					if($i == $length){
-						$encoded .= ".";
-					}
-					$i++;
-				}
-			}
-		
-			$encoded = explode(".",$encoded);
-			foreach($encoded as $char){
-				$result .= is_numeric($char) ? chr($char) : null;
-			}
-			
-			$this->resp['response']['value'] = true;
-			$this->resp['response']['security_token'] = $securityToken;
-			$this->resp['response']['data'] = base64_encode($result);
-			return json_encode($this->resp);
-			
-		}
-		catch(Exception $e){
-			$this->resp['response']['value'] = false;
-			$this->resp['response']['security_token'] = $securityToken;
-			$this->resp['response']['data'] = $e->getMessage();
-			return json_encode($this->resp);
-		}
-	}
+    /**
+     * Controlla la robustezza della password.
+     */
+    private function keyCheck(string $key): bool|string
+    {
+        if (strlen($key) < 8) {
+            return "Password must contain at least 8 characters";
+        }
+        if (!preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $key)) {
+            return "Password must contain at least a special character";
+        }
+        if (!preg_match('~[0-9]+~', $key)) {
+            return "Password must contain at least a number";
+        }
+        if (!preg_match('/[A-Z]/', $key)) {
+            return "Password must contain at least an uppercase character";
+        }
+        return true;
+    }
+    
+    /**
+     * Genera la mappa di caratteri (charset) usata per l'offuscamento.
+     */
+    private function generateKeyCharset(string $key, string $token): array
+    {
+        // Utilizzo di sha256 invece di md5 per una maggiore sicurezza (anche se ancora non ideale per derivare chiavi)
+        $combinedKey = hash('sha256', strrev($key)) . $token;
+        return array_values(array_unique(str_split($combinedKey)));
+    }
+
+    /**
+     * Offusca i valori ASCII e genera lo schema per la decrittazione.
+     */
+     private function getScheme(array $asciiArray, array $keyCharset): array
+    {
+        $coded = "";
+        $scheme = "";
+
+        foreach ($asciiArray as $asciiValue) {
+            // Sebbene ord() non possa restituire una stringa vuota, manteniamo il controllo per robustezza.
+            if ($asciiValue === '') continue;
+
+            // --- ECCO LA CORREZIONE ---
+            // Converte l'intero (es: 72) in stringa ("72") prima di dividerlo in cifre.
+            $digits = str_split((string)$asciiValue); 
+            
+            $length = count($digits);
+
+            foreach ($digits as $digit) {
+                // PHP gestirà la chiave stringa '7' come chiave intera 7, quindi questo funziona.
+                $coded .= $keyCharset[$digit] ?? $digit;
+            }
+            // Crea lo schema utilizzando la lunghezza del valore ASCII
+            $scheme .= $keyCharset[$length] ?? $length;
+        }
+
+        return [$scheme, $coded];
+    }
+
+    /**
+     * De-offusca i dati utilizzando lo schema e il charset.
+     */
+    private function getDecoded(array $obfuscatedChunks, array $keyCharset): string
+    {
+        $result = "";
+        $reversedKeyCharset = array_flip($keyCharset); // Usa array_flip per ricerche O(1) invece di O(n)
+
+        foreach ($obfuscatedChunks as $chunk) {
+            if ($chunk === '') continue;
+            
+            $chars = str_split($chunk);
+            $asciiValue = "";
+            foreach ($chars as $char) {
+                // Ricerca inversa molto più veloce
+                $asciiValue .= $reversedKeyCharset[$char] ?? $char;
+            }
+            $result .= chr((int)$asciiValue);
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Costruisce e ritorna la risposta JSON.
+     */
+    private function _buildResponse(bool $success, string $data, ?string $token = null): string
+    {
+        $response = $this->respTemplate;
+        $response['response']['value'] = $success;
+        $response['response']['security_token'] = $token;
+        $response['response']['data'] = $data;
+        return json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Funzione di offuscamento (ex "Encrypting").
+     */
+    public function bushEncrypt(?string $text, ?string $key): string
+    {
+        if (empty($text) || empty($key)) {
+             return $this->_buildResponse(false, "Text and key are mandatory");
+        }
+        
+        try {
+            $keyCheck = $this->keyCheck($key);
+            if ($keyCheck !== true) {
+                throw new Exception($keyCheck);
+            }
+
+            $token = $this->tokenGen(strlen($key));
+            $keyCharset = $this->generateKeyCharset($key, $token);
+            
+            // Converte il testo in un array di valori ASCII
+            $asciiArray = array_map('ord', str_split($text));
+
+            // Genera la stringa offuscata e lo schema
+            [$scheme, $coded] = $this->getScheme($asciiArray, $keyCharset);
+            
+            // Unisce le parti e codifica in base64
+            $finalData = base64_encode($token . '||' . $coded . '||' . $scheme);
+
+            return $this->_buildResponse(true, $finalData, $token);
+
+        } catch (Exception $e) {
+            return $this->_buildResponse(false, $e->getMessage());
+        }
+    }
+
+    /**
+     * Funzione di de-offuscamento (ex "Decrypting").
+     */
+    public function bushDecrypt(?string $text, ?string $key, ?string $securityToken): string
+    {
+        if (empty($text) || empty($key) || empty($securityToken)) {
+            return $this->_buildResponse(false, "Data to be converted, password and security token are mandatory", $securityToken);
+        }
+
+        try {
+            $decodedText = base64_decode($text, true);
+            if ($decodedText === false) {
+                throw new Exception("Invalid Base64 input.");
+            }
+
+            // Estrae token, dati e schema usando un delimitatore chiaro
+            $parts = explode('||', $decodedText);
+            if (count($parts) !== 3) {
+                throw new Exception("Malformed data structure.");
+            }
+            [$this->token, $codedData, $scheme] = $parts;
+
+            // Controllo del token
+            if (!hash_equals($this->token, $securityToken)) {
+                 throw new Exception("Security token or password mismatch");
+            }
+            
+            $keyCharset = $this->generateKeyCharset($key, $this->token);
+            $reversedKeyCharset = array_flip($keyCharset);
+            
+            $schemeChars = str_split($scheme);
+            $lengths = [];
+            foreach($schemeChars as $char) {
+                // Ricostruisce le lunghezze originali dei valori ASCII
+                $lengths[] = (int)($reversedKeyCharset[$char] ?? $char);
+            }
+            
+
+            // Ricostruisce l'array di blocchi offuscati senza manipolare stringhe
+            $obfuscatedChunks = [];
+            $offset = 0;
+            foreach ($lengths as $length) {
+                $obfuscatedChunks[] = substr($codedData, $offset, $length);
+                $offset += $length;
+            }
+            
+            $result = $this->getDecoded($obfuscatedChunks, $keyCharset);
+
+            return $this->_buildResponse(true, base64_encode($result), $securityToken);
+
+        } catch (Exception $e) {
+            return $this->_buildResponse(false, $e->getMessage(), $securityToken);
+        }
+    }
 }
-?>
